@@ -1,0 +1,14 @@
+# about:
+name: AgentTrace
+description: 'Open source AI agent observability. Trace tokens, tools, latency, and cost. Local dashboard. Zero cloud dependency. Privacy-first.'
+topics:
+  - ai-observability
+  - llm-tracing
+  - agent-monitoring
+  - open-source
+  - typescript
+  - python
+  - sqlite
+  - developer-tools
+  - privacy-first
+  - local-first

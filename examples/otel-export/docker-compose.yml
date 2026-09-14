@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  # ---- OpenTelemetry Collector ----
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.104.0
+    container_name: agenttrace-otel-collector
+    command: ['--config', '/etc/otelcol-contrib/config.yaml']
+    volumes:
+      - ./config.yaml:/etc/otelcol-contrib/config.yaml:ro
+    ports:
+      # OTLP gRPC (used by SDKs)
+      - '4317:4317'
+      # OTLP HTTP (used by SDKs)
+      - '4318:4318'
+      # Collector health check
+      - '13133:13133'
+      # Collector Prometheus metrics
+      - '8888:8888'
+    environment:
+      # Set your Datadog API key here or via .env file
+      - DD_API_KEY=${DD_API_KEY:-your-datadog-api-key}
+    depends_on:
+      jaeger:
+        condition: service_started
+      zipkin:
+        condition: service_started
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:13133']
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # ---- Jaeger (all-in-one for local dev) ----
+  jaeger:
+    image: jaegertracing/all-in-one:1.57
+    container_name: agenttrace-jaeger
+    ports:
+      - '16686:16686' # Jaeger UI
+      - '14250:14250' # gRPC (model.proto)
+      - '14268:14268' # HTTP (Thrift)
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:16686']
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # ---- Zipkin ----
+  zipkin:
+    image: openzipkin/zipkin:3
+    container_name: agenttrace-zipkin
+    ports:
+      - '9411:9411' # Zipkin UI + API
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:9411/health']
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

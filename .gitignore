@@ -1,0 +1,44 @@
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+.DS_Store
+.env
+.env.*
+!.env.example
+*.log
+.vscode/
+*.db
+*.sqlite
+*.sqlite-journal
+*.db-shm
+*.wal
+.agenttrace/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+dist/
+build/
+.venv/
+venv/
+ENV/
+.pytest_cache/
+*.egg
+agenttrace.db*-test-*.db*
+:memory:
+beta-test.mjs
+
+# Local working notes (contain machine-specific paths — never commit)
+hot.md
+MEMORY.md
+AGENTS.md
+CLAUDE.md
+.cursorrules
+
+# Stray Windows CMD redirect artifact (contains local paths)
+nul
+[Nn]ul

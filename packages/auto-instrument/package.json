@@ -1,0 +1,40 @@
+{
+  "name": "@agenttrace-io/auto-instrument",
+  "version": "0.4.24",
+  "description": "Zero-config auto-instrumentation for AI agents",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "agenttrace-instrument": "dist/cli.js",
+    "agenttrace-auto": "dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@agenttrace-io/sdk": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "@types/node": "^20.0.0"
+  },
+  "keywords": [
+    "agenttrace",
+    "observability",
+    "ai-agents",
+    "tracing",
+    "auto-instrument"
+  ],
+  "license": "MIT"
+}

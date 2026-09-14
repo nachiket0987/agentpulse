@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  agenttrace:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: agenttrace
+    ports:
+      - '4317:4317'
+    volumes:
+      # Persistent volume for the SQLite database (agenttrace.db)
+      - agenttrace-data:/app/data
+    environment:
+      - AGENTTRACE_DB_PATH=/app/data/agenttrace.db
+      - NODE_ENV=production
+    restart: unless-stopped
+    # Optional healthcheck using the built-in /api/health endpoint
+    healthcheck:
+      test:
+        ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:4317/api/health']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  agenttrace-data:
+    driver: local

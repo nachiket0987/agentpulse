@@ -1,0 +1,863 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AgentTrace — Local-first observability for AI agents</title>
+    <meta
+      name="description"
+      content="Universal local-first observability for any AI agent. Auto-detect and trace every token, tool call, and decision with one command. 100% local SQLite. Zero cloud. Zero lock-in."
+    />
+    <meta property="og:title" content="AgentTrace — Local AI Agent Observability" />
+    <meta
+      property="og:description"
+      content="Every token. Every tool call. Every decision. Stored locally in SQLite. No cloud. No accounts. MIT licensed."
+    />
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:image"
+      content="https://raw.githubusercontent.com/Klepsiphron/agenttrace/main/docs/assets/logo.svg"
+    />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+
+    <!-- Tailwind via CDN for a clean, modern production look -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap');
+
+      :root {
+        --bg: #0a0b0f;
+        --surface: #111217;
+        --surface-2: #161a21;
+        --border: #252a34;
+        --text: #e6e8f0;
+        --text-muted: #8a90a0;
+        --accent: #6366f1;
+        --accent-2: #818cf8;
+        --success: #22c55e;
+      }
+
+      body {
+        font-family: 'Inter', system_ui, sans-serif;
+      }
+
+      .font-display {
+        font-family: 'Space Grotesk', 'Inter', system_ui, sans-serif;
+        font-feature-settings: 'ss01';
+      }
+
+      .glass {
+        background: rgba(17, 18, 23, 0.8);
+        backdrop-filter: blur(20px);
+      }
+
+      .card {
+        transition:
+          transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+          box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+          border-color 0.2s;
+      }
+      .card:hover {
+        transform: translateY(-4px);
+        box-shadow:
+          0 20px 25px -5px rgb(0 0 0 / 0.1),
+          0 8px 10px -6px rgb(0 0 0 / 0.1);
+        border-color: #353c4a;
+      }
+
+      .terminal {
+        font-family:
+          ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+          monospace;
+        background: #0c0d12;
+        border: 1px solid #252a34;
+      }
+
+      .trace-line {
+        position: relative;
+      }
+      .trace-line::after {
+        content: '';
+        position: absolute;
+        left: 11px;
+        top: 28px;
+        bottom: -4px;
+        width: 2px;
+        background: linear-gradient(to bottom, #6366f1, transparent);
+        opacity: 0.25;
+      }
+
+      .modern-btn {
+        transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .modern-btn:hover {
+        transform: translateY(-1px);
+      }
+
+      .prose-custom {
+        color: #8a90a0;
+        line-height: 1.6;
+      }
+      .prose-custom code {
+        color: #a5b4fc;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 13px;
+      }
+
+      .section-header {
+        max-width: 720px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+    </style>
+  </head>
+  <body class="bg-[#0a0b0f] text-[#e6e8f0] antialiased">
+    <!-- Nav -->
+    <nav class="sticky top-0 z-50 border-b border-[#252a34] bg-[#0a0b0f]/95 backdrop-blur-xl">
+      <div class="max-w-7xl mx-auto px-6">
+        <div class="flex h-16 items-center justify-between">
+          <div class="flex items-center gap-x-3">
+            <div class="flex items-center gap-x-2.5">
+              <div
+                class="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center"
+              >
+                <span class="text-white text-xl font-semibold tracking-tighter">A</span>
+              </div>
+              <span class="font-semibold text-xl tracking-tighter">AgentTrace</span>
+            </div>
+          </div>
+
+          <div class="hidden md:flex items-center gap-x-8 text-sm">
+            <a href="#features" class="text-[#8a90a0] hover:text-white transition-colors"
+              >Features</a
+            >
+            <a href="#how" class="text-[#8a90a0] hover:text-white transition-colors"
+              >How it works</a
+            >
+            <a href="#dashboard" class="text-[#8a90a0] hover:text-white transition-colors"
+              >Dashboard</a
+            >
+            <a
+              href="https://github.com/Klepsiphron/agenttrace#readme"
+              target="_blank"
+              rel="noopener"
+              class="text-[#8a90a0] hover:text-white transition-colors"
+              >Docs</a
+            >
+          </div>
+
+          <div class="flex items-center gap-x-3">
+            <a
+              href="https://github.com/Klepsiphron/agenttrace"
+              target="_blank"
+              rel="noopener"
+              class="hidden sm:inline-flex items-center gap-x-2 rounded-full border border-[#252a34] px-4 py-1.5 text-sm font-medium hover:bg-[#161a21] transition-colors"
+            >
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path
+                  d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
+                />
+              </svg>
+              <span>GitHub</span>
+            </a>
+            <a
+              href="https://github.com/Klepsiphron/agenttrace"
+              target="_blank"
+              rel="noopener"
+              class="inline-flex items-center justify-center rounded-full bg-white px-5 py-2 text-sm font-semibold text-[#0a0b0f] hover:bg-white/90 transition-all"
+            >
+              View on GitHub
+            </a>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Hero -->
+    <div class="max-w-5xl mx-auto px-6 pt-20 pb-16 text-center">
+      <div
+        class="inline-flex items-center gap-x-2 rounded-full border border-[#252a34] bg-[#111217] px-3 py-1 text-xs font-medium tracking-[0.5px] text-[#8a90a0] mb-6"
+      >
+        <div class="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
+        Local-first • MIT • 100% on your machine
+      </div>
+
+      <h1
+        class="font-display text-6xl md:text-7xl font-semibold tracking-tighter leading-[1.05] mb-6"
+      >
+        Local-first<br />observability<br />for any AI agent.
+      </h1>
+
+      <p class="mx-auto max-w-[620px] text-2xl text-[#8a90a0] tracking-tight">
+        Auto-detect and trace every token, tool call, and decision.<br class="hidden md:block" />
+        One command. Pure SQLite. No cloud. No lock-in.
+      </p>
+
+      <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a
+          href="#get-started"
+          class="group inline-flex items-center justify-center gap-x-3 rounded-2xl bg-[#6366f1] px-8 py-4 text-lg font-semibold text-white shadow-lg shadow-indigo-500/25 hover:bg-[#5558e3] transition-all"
+        >
+          Get started in 30 seconds
+          <span class="group-hover:translate-x-0.5 transition">→</span>
+        </a>
+        <a
+          href="https://github.com/Klepsiphron/agenttrace"
+          target="_blank"
+          rel="noopener"
+          class="inline-flex items-center justify-center gap-x-2 rounded-2xl border border-[#252a34] bg-[#111217] px-7 py-4 text-lg font-medium hover:bg-[#161a21] transition-all"
+        >
+          View on GitHub
+        </a>
+      </div>
+
+      <div class="mt-8 flex items-center justify-center gap-x-6 text-sm text-[#8a90a0]">
+        <div class="flex items-center gap-x-1.5">
+          <span class="font-mono text-emerald-400">npm i -g @agenttrace-io/cli</span>
+        </div>
+        <div class="hidden sm:block text-[#252a34]">•</div>
+        <div>or <span class="font-medium text-[#a5b4fc]">pip install agenttrace-io</span></div>
+      </div>
+    </div>
+
+    <!-- Trust / Positioning -->
+    <div class="border-y border-[#252a34] py-5">
+      <div class="max-w-5xl mx-auto px-6">
+        <div
+          class="flex flex-wrap items-center justify-center gap-x-10 gap-y-3 text-sm text-[#8a90a0]"
+        >
+          <div>
+            Works with any agent — CLI, custom code, LangGraph, CrewAI, or fully hand-rolled.
+          </div>
+          <div class="h-px w-6 bg-[#252a34] hidden sm:block"></div>
+          <div class="font-medium">Zero data leaves your machine by default</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Problem -->
+    <div class="max-w-4xl mx-auto px-6 pt-16 pb-12">
+      <div class="rounded-3xl border border-[#252a34] bg-[#111217] p-10 md:p-12">
+        <div class="uppercase tracking-[2px] text-xs font-semibold text-[#6366f1] mb-4">
+          The challenge
+        </div>
+        <div class="text-4xl font-semibold tracking-tight leading-tight">
+          Modern agents are getting more autonomous.<br />
+          Most teams have almost no visibility into what they actually do.
+        </div>
+        <p class="mt-6 max-w-prose text-xl text-[#8a90a0]">
+          Long-running agents produce complex chains of reasoning, tool calls, and sub-agent
+          handoffs. Without structured traces you lose cost control and the ability to debug or
+          audit what happened.
+        </p>
+      </div>
+    </div>
+
+    <!-- Features -->
+    <div id="features" class="max-w-7xl mx-auto px-6 pb-8">
+      <div class="section-header text-center mb-10">
+        <div class="text-[#6366f1] text-sm font-semibold tracking-widest mb-3">CAPABILITIES</div>
+        <h2 class="font-display text-5xl tracking-tighter font-semibold">
+          Complete visibility.<br />Zero dependencies.
+        </h2>
+        <p class="mt-4 text-xl text-[#8a90a0]">
+          One lightweight approach that works for whatever agentic code you're running.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="card group rounded-3xl border border-[#252a34] bg-[#111217] p-7">
+          <div
+            class="w-10 h-10 rounded-xl bg-[#1c2030] flex items-center justify-center mb-6 text-[#818cf8]"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2.25"
+                d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+          </div>
+          <h3 class="font-semibold text-2xl tracking-tight mb-2">One-line CLI wrapper</h3>
+          <p class="text-[#8a90a0] leading-relaxed">
+            Point it at any command and it auto-detects and records the full execution. No code
+            changes required for CLI-based agents.
+          </p>
+        </div>
+
+        <div class="card group rounded-3xl border border-[#252a34] bg-[#111217] p-7">
+          <div
+            class="w-10 h-10 rounded-xl bg-[#1c2030] flex items-center justify-center mb-6 text-[#818cf8]"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2.25"
+                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9"
+              />
+            </svg>
+          </div>
+          <h3 class="font-semibold text-2xl tracking-tight mb-2">
+            Precise cost &amp; token tracking
+          </h3>
+          <p class="text-[#8a90a0] leading-relaxed">
+            Built-in pricing for common models plus support for custom rates. Per-agent, per-day,
+            and per-model breakdowns with budget guardrails.
+          </p>
+        </div>
+
+        <div class="card group rounded-3xl border border-[#252a34] bg-[#111217] p-7">
+          <div
+            class="w-10 h-10 rounded-xl bg-[#1c2030] flex items-center justify-center mb-6 text-[#818cf8]"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2.25"
+                d="M17 20h5v-2a3 3 0 01-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 01-2 2 2 2 0 01-2-2 2 2 0 012-2 2 2 0 012 2zm-6 8a2 2 0 01-2-2 2 2 0 01-2 2 2 2 0 01-2-2"
+              />
+            </svg>
+          </div>
+          <h3 class="font-semibold text-2xl tracking-tight mb-2">Multi-agent trace trees</h3>
+          <p class="text-[#8a90a0] leading-relaxed">
+            See the full hierarchy when agents spawn sub-agents. Parent/child linking and execution
+            graphs for complex systems.
+          </p>
+        </div>
+
+        <div class="card group rounded-3xl border border-[#252a34] bg-[#111217] p-7">
+          <div
+            class="w-10 h-10 rounded-xl bg-[#1c2030] flex items-center justify-center mb-6 text-[#818cf8]"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2.25"
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 01-2 2v10m-6 0a2 2 0 002 2h2a2 2 0 01-2-2m0 0V5a2 2 0 012-2h2a2 2 0 01-2 2"
+              />
+            </svg>
+          </div>
+          <h3 class="font-semibold text-2xl tracking-tight mb-2">Local dashboard + CLI</h3>
+          <p class="text-[#8a90a0] leading-relaxed">
+            Run
+            <span class="font-mono text-xs bg-black/40 px-1.5 py-px rounded"
+              >agenttrace dashboard</span
+            >
+            for live stats, searchable runs, full trace drill-down, and export. Or stay in the
+            terminal.
+          </p>
+        </div>
+
+        <div class="card group rounded-3xl border border-[#252a34] bg-[#111217] p-7">
+          <div
+            class="w-10 h-10 rounded-xl bg-[#1c2030] flex items-center justify-center mb-6 text-[#818cf8]"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2.25"
+                d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
+              />
+            </svg>
+          </div>
+          <h3 class="font-semibold text-2xl tracking-tight mb-2">SDKs + framework middleware</h3>
+          <p class="text-[#8a90a0] leading-relaxed">
+            Drop-in TypeScript and Python SDKs for custom code. Optional thin middleware for
+            LangGraph, CrewAI and similar. The wrapper covers everything else.
+          </p>
+        </div>
+
+        <div class="card group rounded-3xl border border-[#252a34] bg-[#111217] p-7">
+          <div
+            class="w-10 h-10 rounded-xl bg-[#1c2030] flex items-center justify-center mb-6 text-[#818cf8]"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2.25"
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V9a2 2 0 00-2-2M6 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2"
+              />
+            </svg>
+          </div>
+          <h3 class="font-semibold text-2xl tracking-tight mb-2">SQLite + export escape hatches</h3>
+          <p class="text-[#8a90a0] leading-relaxed">
+            Everything lives in one <span class="font-mono">agenttrace.db</span> file. Export
+            JSON/CSV. Forward to OpenTelemetry. Webhooks for alerts. Full data ownership.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- How it works -->
+    <div id="how" class="max-w-5xl mx-auto px-6 pt-8 pb-12">
+      <div class="text-center mb-8">
+        <h2 class="font-display text-4xl font-semibold tracking-tight">
+          Three steps. No cloud. No drama.
+        </h2>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-4">
+        <div class="rounded-3xl border border-[#252a34] bg-[#111217] p-7">
+          <div class="text-xs font-semibold text-[#6366f1] mb-3">01 — INSTALL</div>
+          <div class="text-2xl font-semibold tracking-tight mb-3">One command</div>
+          <div class="prose-custom text-[15px]">
+            <code class="text-[#a5b4fc]">npm i -g @agenttrace-io/cli</code><br />
+            or <code class="text-[#a5b4fc]">pip install agenttrace-io</code>
+          </div>
+        </div>
+        <div class="rounded-3xl border border-[#252a34] bg-[#111217] p-7">
+          <div class="text-xs font-semibold text-[#6366f1] mb-3">02 — TRACE</div>
+          <div class="text-2xl font-semibold tracking-tight mb-3">Wrap or instrument</div>
+          <div class="prose-custom text-[15px]">
+            Zero-config: <code class="text-[#a5b4fc]">agenttrace wrap your-agent ...</code><br />
+            The wrapper auto-detects. Use the SDK or optional middleware where it makes sense.
+          </div>
+        </div>
+        <div class="rounded-3xl border border-[#252a34] bg-[#111217] p-7">
+          <div class="text-xs font-semibold text-[#6366f1] mb-3">03 — OBSERVE</div>
+          <div class="text-2xl font-semibold tracking-tight mb-3">Local dashboard + CLI</div>
+          <div class="prose-custom text-[15px]">
+            <code class="text-[#a5b4fc]">agenttrace dashboard</code> or
+            <code class="text-[#a5b4fc]">agenttrace runs</code><br />
+            Everything stays in <span class="font-mono">agenttrace.db</span>.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dashboard preview -->
+    <div id="dashboard" class="max-w-6xl mx-auto px-6 pt-4 pb-16">
+      <div class="text-center mb-8">
+        <div class="inline text-[#6366f1] text-sm font-semibold tracking-widest">
+          THE LOCAL DASHBOARD
+        </div>
+        <h2 class="font-display text-4xl font-semibold tracking-tight mt-2">
+          See everything at a glance.<br />Right on your machine.
+        </h2>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <div class="lg:col-span-5 rounded-3xl border border-[#252a34] bg-[#111217] overflow-hidden">
+          <div
+            class="px-5 py-3 border-b border-[#252a34] flex items-center justify-between text-sm"
+          >
+            <div class="font-medium">Recent runs</div>
+            <div class="text-xs text-[#8a90a0]">Live updates</div>
+          </div>
+          <div class="divide-y divide-[#252a34] text-sm">
+            <div class="px-5 py-3.5 flex items-center gap-3 hover:bg-[#161a21]">
+              <div class="text-emerald-400">●</div>
+              <div class="flex-1 min-w-0">
+                <div class="font-medium">deep-research-run</div>
+                <div class="text-[#8a90a0] text-xs">2m ago • 47k tokens • $0.19</div>
+              </div>
+              <div class="text-right text-xs text-[#8a90a0]">12 spans</div>
+            </div>
+            <div class="px-5 py-3.5 flex items-center gap-3 hover:bg-[#161a21]">
+              <div class="text-emerald-400">●</div>
+              <div class="flex-1 min-w-0">
+                <div class="font-medium">autonomous-pipeline</div>
+                <div class="text-[#8a90a0] text-xs">14m ago • 128k tokens • $0.61</div>
+              </div>
+              <div class="text-right text-xs text-[#8a90a0]">31 spans</div>
+            </div>
+            <div class="px-5 py-3.5 flex items-center gap-3 hover:bg-[#161a21]">
+              <div class="text-amber-400">●</div>
+              <div class="flex-1 min-w-0">
+                <div class="font-medium">customer-support-agent</div>
+                <div class="text-[#8a90a0] text-xs">1h ago • 19k tokens • $0.08</div>
+              </div>
+              <div class="text-right text-xs text-[#8a90a0]">8 spans</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-7 rounded-3xl border border-[#252a34] bg-[#111217] p-5">
+          <div class="flex items-center justify-between mb-3 px-1">
+            <div>
+              <span class="font-semibold">autonomous-pipeline</span>
+              <span class="ml-2 text-xs px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400"
+                >success</span
+              >
+            </div>
+            <div class="text-xs text-[#8a90a0]">128,420 tokens • 4m 12s • $0.61</div>
+          </div>
+
+          <div class="space-y-1 text-sm">
+            <div class="trace-line flex gap-3 items-start px-2 py-1.5 rounded hover:bg-[#161a21]">
+              <div
+                class="w-5 h-5 mt-0.5 rounded bg-indigo-500/20 text-indigo-400 flex-shrink-0 flex items-center justify-center text-[10px] font-mono"
+              >
+                1
+              </div>
+              <div class="flex-1">
+                <div class="flex justify-between">
+                  <span class="font-medium">plan_research</span>
+                  <span class="text-[#8a90a0] text-xs">gpt-4o • 1.8k tokens</span>
+                </div>
+              </div>
+            </div>
+            <div
+              class="trace-line flex gap-3 items-start px-2 py-1.5 rounded hover:bg-[#161a21] ml-4"
+            >
+              <div
+                class="w-5 h-5 mt-0.5 rounded bg-violet-500/20 text-violet-400 flex-shrink-0 flex items-center justify-center text-[10px] font-mono"
+              >
+                2
+              </div>
+              <div class="flex-1">
+                <div class="flex justify-between">
+                  <span>web_search</span> <span class="text-[#8a90a0] text-xs">tool • 420ms</span>
+                </div>
+              </div>
+            </div>
+            <div
+              class="trace-line flex gap-3 items-start px-2 py-1.5 rounded hover:bg-[#161a21] ml-4"
+            >
+              <div
+                class="w-5 h-5 mt-0.5 rounded bg-violet-500/20 text-violet-400 flex-shrink-0 flex items-center justify-center text-[10px] font-mono"
+              >
+                3
+              </div>
+              <div class="flex-1">
+                <div class="flex justify-between">
+                  <span>read_page × 4</span>
+                  <span class="text-[#8a90a0] text-xs">tools • 2.1s</span>
+                </div>
+              </div>
+            </div>
+            <div class="trace-line flex gap-3 items-start px-2 py-1.5 rounded hover:bg-[#161a21]">
+              <div
+                class="w-5 h-5 mt-0.5 rounded bg-indigo-500/20 text-indigo-400 flex-shrink-0 flex items-center justify-center text-[10px] font-mono"
+              >
+                4
+              </div>
+              <div class="flex-1">
+                <div class="flex justify-between">
+                  <span class="font-medium">synthesize_report</span>
+                  <span class="text-[#8a90a0] text-xs">claude-3-5-sonnet • 9.4k tokens</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-4 text-[11px] text-[#8a90a0] flex items-center gap-2 px-1">
+            <span>Full tree • 31 spans • Export JSON / CSV / OTLP</span>
+          </div>
+        </div>
+      </div>
+      <p class="text-center text-xs text-[#8a90a0] mt-4">
+        All data stays in <span class="font-mono">agenttrace.db</span>. Open source. Self-hostable.
+        No telemetry.
+      </p>
+    </div>
+
+    <!-- Get started -->
+    <div id="get-started" class="max-w-4xl mx-auto px-6 pt-4 pb-16">
+      <div class="rounded-3xl bg-[#111217] border border-[#252a34] p-10">
+        <div class="text-center mb-8">
+          <h2 class="font-display text-4xl font-semibold tracking-tight">
+            Start tracing in under a minute.
+          </h2>
+          <p class="text-[#8a90a0] mt-2">
+            No accounts. No credit card. No data leaves your machine.
+          </p>
+        </div>
+
+        <div class="space-y-4 max-w-2xl mx-auto">
+          <div class="terminal rounded-2xl p-5 text-sm">
+            <div class="flex items-center justify-between mb-2 text-xs text-[#8a90a0]">
+              <div>TERMINAL</div>
+              <button
+                onclick="copyToClipboard(this)"
+                class="text-[#6366f1] hover:text-white transition text-xs font-medium"
+              >
+                COPY
+              </button>
+            </div>
+            <div class="font-mono">npm install -g @agenttrace-io/cli</div>
+          </div>
+
+          <div class="terminal rounded-2xl p-5 text-sm">
+            <div class="flex items-center justify-between mb-2 text-xs text-[#8a90a0]">
+              <div>TERMINAL</div>
+              <button
+                onclick="copyToClipboard(this)"
+                class="text-[#6366f1] hover:text-white transition text-xs font-medium"
+              >
+                COPY
+              </button>
+            </div>
+            <div class="font-mono">agenttrace wrap python research_agent.py</div>
+          </div>
+
+          <div class="terminal rounded-2xl p-5 text-sm">
+            <div class="flex items-center justify-between mb-2 text-xs text-[#8a90a0]">
+              <div>TERMINAL</div>
+              <button
+                onclick="copyToClipboard(this)"
+                class="text-[#6366f1] hover:text-white transition text-xs font-medium"
+              >
+                COPY
+              </button>
+            </div>
+            <div class="font-mono">
+              agenttrace dashboard
+              <span class="text-[#8a90a0]"># opens at http://localhost:4317</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-center mt-8">
+          <a
+            href="https://github.com/Klepsiphron/agenttrace#readme"
+            target="_blank"
+            rel="noopener"
+            class="inline-flex items-center text-sm font-medium text-[#a5b4fc] hover:text-white transition"
+          >
+            Read the full quickstart &amp; SDK docs →
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Comparison -->
+    <div class="max-w-6xl mx-auto px-6 pb-16">
+      <div class="text-center mb-8">
+        <h2 class="font-display text-4xl font-semibold tracking-tight">Honest comparison</h2>
+        <p class="text-[#8a90a0] mt-2">
+          Built for teams that want the simplest possible local truth.
+        </p>
+      </div>
+
+      <div class="overflow-x-auto rounded-3xl border border-[#252a34] bg-[#111217]">
+        <table class="w-full min-w-[820px] text-sm">
+          <thead>
+            <tr
+              class="border-b border-[#252a34] text-left text-xs uppercase tracking-widest text-[#8a90a0]"
+            >
+              <th class="py-4 pl-8 pr-4 font-normal">Capability</th>
+              <th class="py-4 px-4 font-normal text-center">AgentTrace</th>
+              <th class="py-4 px-4 font-normal text-center">Langfuse</th>
+              <th class="py-4 px-4 font-normal text-center">LangSmith</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-[#252a34]">
+            <tr>
+              <td class="py-4 pl-8 pr-4 font-medium">100% local / zero cloud</td>
+              <td class="py-4 px-4 text-center text-emerald-400 font-medium">
+                ✓ Pure local SQLite
+              </td>
+              <td class="py-4 px-4 text-center text-[#8a90a0]">Cloud or heavy self-host</td>
+              <td class="py-4 px-4 text-center text-[#8a90a0]">Cloud only</td>
+            </tr>
+            <tr>
+              <td class="py-4 pl-8 pr-4 font-medium">CLI zero-config wrapper</td>
+              <td class="py-4 px-4 text-center text-emerald-400 font-medium">✓ First class</td>
+              <td class="py-4 px-4 text-center text-[#8a90a0]">No</td>
+              <td class="py-4 px-4 text-center text-[#8a90a0]">No</td>
+            </tr>
+            <tr>
+              <td class="py-4 pl-8 pr-4 font-medium">Single-file storage</td>
+              <td class="py-4 px-4 text-center text-emerald-400 font-medium">✓ agenttrace.db</td>
+              <td class="py-4 px-4 text-center text-[#8a90a0]">ClickHouse / Postgres</td>
+              <td class="py-4 px-4 text-center text-[#8a90a0]">Cloud</td>
+            </tr>
+            <tr>
+              <td class="py-4 pl-8 pr-4 font-medium">Price for core tracing</td>
+              <td class="py-4 px-4 text-center text-emerald-400 font-medium">$0 forever (MIT)</td>
+              <td class="py-4 px-4 text-center text-[#8a90a0]">Usage + self-host cost</td>
+              <td class="py-4 px-4 text-center text-[#8a90a0]">Paid seats</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="text-center text-xs text-[#8a90a0] mt-3">
+        Based on public documentation. AgentTrace focuses on simplicity and local ownership.
+      </p>
+    </div>
+
+    <!-- Final CTA -->
+    <div class="max-w-3xl mx-auto px-6 pb-20 text-center">
+      <div
+        class="inline-flex flex-col items-center gap-y-4 rounded-3xl border border-[#252a34] bg-[#111217] px-10 py-9"
+      >
+        <div>
+          <div class="text-2xl font-semibold tracking-tight">
+            Ready to stop flying blind with your agents?
+          </div>
+          <div class="text-[#8a90a0] mt-1">Install. Wrap. Understand.</div>
+        </div>
+        <div class="flex gap-3">
+          <a
+            href="#get-started"
+            class="modern-btn inline-flex items-center rounded-2xl bg-[#6366f1] px-6 py-3 font-semibold text-white hover:bg-[#5558e3]"
+            >Get started</a
+          >
+          <a
+            href="https://github.com/Klepsiphron/agenttrace"
+            target="_blank"
+            rel="noopener"
+            class="modern-btn inline-flex items-center rounded-2xl border border-[#252a34] px-6 py-3 font-medium hover:bg-[#161a21]"
+            >Star on GitHub</a
+          >
+        </div>
+        <div class="text-xs text-[#8a90a0]">
+          MIT licensed • Open source • Community contributions welcome
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="border-t border-[#252a34] py-9">
+      <div
+        class="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-y-4 text-sm text-[#8a90a0]"
+      >
+        <div class="flex items-center gap-x-2">
+          <span class="font-medium text-white">AgentTrace</span>
+          <span>— Local-first AI agent observability</span>
+        </div>
+        <div class="flex flex-wrap items-center gap-x-5 text-xs">
+          <a
+            href="https://github.com/Klepsiphron/agenttrace"
+            target="_blank"
+            rel="noopener"
+            class="hover:text-white"
+            >GitHub</a
+          >
+          <a
+            href="https://github.com/Klepsiphron/agenttrace#readme"
+            target="_blank"
+            rel="noopener"
+            class="hover:text-white"
+            >README &amp; Docs</a
+          >
+          <a
+            href="https://www.npmjs.com/package/@agenttrace-io/cli"
+            target="_blank"
+            rel="noopener"
+            class="hover:text-white"
+            >npm</a
+          >
+          <a
+            href="https://pypi.org/project/agenttrace-io/"
+            target="_blank"
+            rel="noopener"
+            class="hover:text-white"
+            >PyPI</a
+          >
+          <span class="text-[#252a34]">•</span>
+          <span>MIT licensed</span>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      function initTailwind() {
+        if (window.tailwind) {
+          window.tailwind.config = {
+            theme: {
+              extend: {
+                fontFamily: {
+                  display: ['Space Grotesk', 'Inter', 'system-ui', 'sans-serif'],
+                },
+              },
+            },
+          };
+        }
+      }
+      initTailwind();
+
+      function copyToClipboard(btn) {
+        const codeBlock =
+          btn.parentElement.nextElementSibling ||
+          btn.closest('.terminal').querySelector('.font-mono');
+        if (!codeBlock) return;
+        const text = codeBlock.textContent.trim();
+        navigator.clipboard
+          .writeText(text)
+          .then(() => {
+            const original = btn.textContent;
+            btn.textContent = 'COPIED';
+            btn.style.color = '#22c55e';
+            setTimeout(() => {
+              btn.textContent = original;
+              btn.style.color = '';
+            }, 1400);
+          })
+          .catch(() => {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            const original = btn.textContent;
+            btn.textContent = 'COPIED';
+            setTimeout(() => (btn.textContent = original), 1200);
+          });
+      }
+
+      document.querySelectorAll('.terminal').forEach((term) => {
+        const header = term.querySelector('.flex');
+        if (header) {
+          header.style.cursor = 'pointer';
+          header.addEventListener('click', (ev) => {
+            if (ev.target.tagName === 'BUTTON') return;
+            const btn = term.querySelector('button');
+            if (btn) btn.click();
+          });
+        }
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key === '/' && document.activeElement.tagName === 'BODY') {
+          e.preventDefault();
+          const el = document.getElementById('get-started');
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      });
+    </script>
+  </body>
+</html>

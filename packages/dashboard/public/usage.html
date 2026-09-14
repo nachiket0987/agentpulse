@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AgentTrace • Usage</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <svg
+            class="brand-logo"
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="9" stroke="#3b82f6" stroke-width="2" />
+            <path
+              d="M8 12l3 3 5-5"
+              stroke="#3b82f6"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <div>
+            <h1>AgentTrace</h1>
+            <span class="subtitle">Live Usage Dashboard</span>
+          </div>
+        </div>
+        <div class="top-actions">
+          <a href="/" class="btn btn-secondary">← Dashboard</a>
+          <button id="refresh-btn" class="btn btn-secondary" title="Refresh all data">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              aria-hidden="true"
+            >
+              <path
+                d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.66 0 3-1.34 3-3"
+              />
+            </svg>
+            Refresh
+          </button>
+          <span id="last-updated" class="status-hint">--</span>
+          <span class="version">v0.1.0</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <div class="nav-back"><a href="/">← Back to runs</a></div>
+
+      <!-- Summary -->
+      <section class="stats-grid usage-grid" id="summary-cards" aria-label="Usage summary">
+        <div class="stat-card">
+          <div class="stat-value" id="active-agents">--</div>
+          <div class="stat-label">Active Agents (30m)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="actions-today">--</div>
+          <div class="stat-label">Actions Today</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="cost-today">--</div>
+          <div class="stat-label">Cost Today (USD)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="tokens-today">--</div>
+          <div class="stat-label">Tokens Today</div>
+        </div>
+      </section>
+
+      <!-- Projections -->
+      <section class="panel" aria-label="Cost projections">
+        <div class="panel-header">
+          <h2>Cost Projections</h2>
+        </div>
+        <div class="chart-panel">
+          <div id="projection-cards" style="display: flex; gap: 16px; flex-wrap: wrap">
+            <div style="min-width: 180px">
+              <div
+                style="
+                  font-size: 11px;
+                  color: var(--text-muted);
+                  text-transform: uppercase;
+                  letter-spacing: 0.5px;
+                "
+              >
+                Spend rate
+              </div>
+              <div id="spend-rate" style="font-size: 22px; font-weight: 600">--</div>
+              <div class="projection">per hour today</div>
+            </div>
+            <div style="min-width: 180px">
+              <div
+                style="
+                  font-size: 11px;
+                  color: var(--text-muted);
+                  text-transform: uppercase;
+                  letter-spacing: 0.5px;
+                "
+              >
+                Projected daily
+              </div>
+              <div id="proj-daily" style="font-size: 22px; font-weight: 600">--</div>
+            </div>
+            <div style="min-width: 180px">
+              <div
+                style="
+                  font-size: 11px;
+                  color: var(--text-muted);
+                  text-transform: uppercase;
+                  letter-spacing: 0.5px;
+                "
+              >
+                Projected monthly
+              </div>
+              <div id="proj-monthly" style="font-size: 22px; font-weight: 600">--</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Charts -->
+      <div class="split">
+        <section class="panel">
+          <div class="panel-header"><h2>Actions by Type (today)</h2></div>
+          <div class="chart-panel">
+            <div id="bar-chart" class="chart-container">
+              <div class="empty small">Loading…</div>
+            </div>
+          </div>
+        </section>
+        <section class="panel">
+          <div class="panel-header"><h2>Cost Over Time (7d)</h2></div>
+          <div class="chart-panel">
+            <div id="line-chart" class="chart-container">
+              <div class="empty small">Loading…</div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Tables -->
+      <div class="split">
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Top Agents by Cost</h2>
+            <span id="top-agents-count" class="count-badge">0</span>
+          </div>
+          <div style="padding: 0">
+            <table class="data-table" id="top-agents-table">
+              <thead>
+                <tr>
+                  <th>Agent</th>
+                  <th class="num">Actions</th>
+                  <th class="num">Tokens</th>
+                  <th class="num">Cost</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colspan="4" class="empty small">Loading…</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Top Tools</h2>
+            <span id="top-tools-count" class="count-badge">0</span>
+          </div>
+          <div style="padding: 0">
+            <table class="data-table" id="top-tools-table">
+              <thead>
+                <tr>
+                  <th>Tool</th>
+                  <th class="num">Calls</th>
+                  <th class="num">Avg Latency</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colspan="3" class="empty small">Loading…</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <div class="split">
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Per-Agent Breakdown (today)</h2>
+          </div>
+          <div style="padding: 0">
+            <table class="data-table" id="per-agent-table">
+              <thead>
+                <tr>
+                  <th>Agent</th>
+                  <th class="num">Actions</th>
+                  <th class="num">Tokens</th>
+                  <th class="num">Cost</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colspan="4" class="empty small">Loading…</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Recent Actions (last 50)</h2>
+            <span id="recent-count" class="count-badge">0</span>
+          </div>
+          <div style="padding: 0">
+            <table class="data-table" id="recent-actions-table">
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Agent</th>
+                  <th>Action</th>
+                  <th class="num">Cost</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colspan="4" class="empty small">Loading…</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <!-- Live Feed -->
+      <section class="panel">
+        <div class="panel-header">
+          <h2>
+            <span class="live-dot" id="live-dot"></span>
+            Live Agent Activity Feed
+          </h2>
+          <div class="panel-header-right">
+            <span id="sse-status" class="sse-status sse-off" title="SSE connection status">●</span>
+            <span id="feed-count" class="count-badge">0 events</span>
+          </div>
+        </div>
+        <div id="activity-feed" class="activity-feed" aria-live="polite">
+          <div class="empty">Connecting to live stream…</div>
+        </div>
+        <div class="panel-footer-hint">Auto-updates via SSE + 5s polling • last 50 shown</div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span
+        >AgentTrace — real-time usage •
+        <a href="https://github.com/Klepsiphron/agenttrace" target="_blank" rel="noopener"
+          >GitHub</a
+        ></span
+      >
+    </footer>
+
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+    <script src="usage.js"></script>
+  </body>
+</html>

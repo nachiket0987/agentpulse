@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AgentTrace Monitoring Dashboard</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <span class="logo">&#x25CE;</span>
+          <div>
+            <h1>AgentTrace</h1>
+            <span class="subtitle">Monitoring Dashboard</span>
+          </div>
+        </div>
+        <div class="top-actions">
+          <button id="refresh-btn" class="btn btn-secondary" title="Refresh data">
+            &#x21BB; Refresh
+          </button>
+          <div class="export-group">
+            <button id="export-json-btn" class="btn btn-secondary">Export JSON</button>
+            <button id="export-csv-btn" class="btn btn-secondary">Export CSV</button>
+          </div>
+          <span class="version">v0.1.0</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <!-- System Health -->
+      <section class="panel health-panel" id="health-panel">
+        <div class="panel-header">
+          <h2>System Health</h2>
+          <span id="health-status" class="health-badge">Checking...</span>
+        </div>
+        <div id="health-details" class="health-details">
+          <div class="health-loading">Loading health data...</div>
+        </div>
+      </section>
+
+      <!-- Summary Stats -->
+      <section class="stats-grid" id="stats">
+        <div class="stat-card">
+          <div class="stat-value" id="total-runs">0</div>
+          <div class="stat-label">Total Runs</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="total-traces">0</div>
+          <div class="stat-label">Total Traces</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="success-rate">0%</div>
+          <div class="stat-label">Success Rate</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="avg-latency">0ms</div>
+          <div class="stat-label">Avg Latency</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="total-cost">$0.0000</div>
+          <div class="stat-label">Total Cost (USD)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="total-tokens">0</div>
+          <div class="stat-label">Total Tokens</div>
+        </div>
+      </section>
+
+      <!-- Charts Row -->
+      <section class="charts-row">
+        <div class="panel chart-panel">
+          <div class="panel-header">
+            <h2>Cost by Model</h2>
+          </div>
+          <div id="chart-cost-by-model" class="chart-container canvas-chart">
+            <div class="empty">No cost data yet</div>
+          </div>
+        </div>
+        <div class="panel chart-panel">
+          <div class="panel-header">
+            <h2>Cost Over Time</h2>
+          </div>
+          <div id="chart-cost-by-day" class="chart-container canvas-chart">
+            <div class="empty">No daily cost data yet</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Top Tools & Errors -->
+      <section class="charts-row">
+        <div class="panel chart-panel">
+          <div class="panel-header">
+            <h2>Top Tool Calls</h2>
+          </div>
+          <div id="top-tools-list" class="chart-container bar-list">
+            <div class="empty">No tool calls yet</div>
+          </div>
+        </div>
+        <div class="panel chart-panel">
+          <div class="panel-header">
+            <h2>Top Errors</h2>
+          </div>
+          <div id="top-errors-list" class="chart-container bar-list">
+            <div class="empty">No errors yet</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Active Agents -->
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Active Agents <span class="live-dot" id="agents-live-dot"></span></h2>
+          <span id="active-agents-count" class="count-badge">0 agents</span>
+        </div>
+        <div id="active-agents-list" class="runs-list">
+          <div class="empty">Loading active agents...</div>
+        </div>
+      </section>
+
+      <!-- Filters -->
+      <section class="toolbar">
+        <div class="filter-group" role="group" aria-label="Filter runs by status">
+          <button class="filter-btn active" data-status="all">All</button>
+          <button class="filter-btn" data-status="success">Success</button>
+          <button class="filter-btn" data-status="failure">Failure</button>
+          <button class="filter-btn" data-status="running">Running</button>
+          <button class="filter-btn" data-status="error">Error</button>
+        </div>
+        <div class="toolbar-spacer"></div>
+        <div class="status-hint" id="auto-refresh-hint">Auto-refreshes every 5s</div>
+      </section>
+
+      <!-- Runs -->
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Recent Agent Runs</h2>
+          <span id="runs-count" class="count-badge">0 runs</span>
+        </div>
+        <div id="runs-list" class="runs-list" aria-live="polite">
+          <div class="empty">Loading runs...</div>
+        </div>
+      </section>
+
+      <!-- Traces for selected run -->
+      <section id="traces-section" class="panel" style="display: none">
+        <div class="panel-header">
+          <h2>Traces for <span id="selected-run-name" class="run-name"></span></h2>
+          <span id="traces-count" class="count-badge">0 traces</span>
+        </div>
+        <div id="traces-list" class="traces-list"></div>
+      </section>
+
+      <!-- Trace Details -->
+      <section id="details-section" class="panel" style="display: none">
+        <div class="panel-header">
+          <h2>Trace &amp; Details</h2>
+          <button id="close-details-btn" class="btn btn-ghost" aria-label="Close details">
+            &#x2715; Close
+          </button>
+        </div>
+        <div id="trace-details" class="trace-details"></div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span
+        >AgentTrace Monitoring Dashboard &mdash; data lives on disk &bull;
+        <a href="https://github.com" target="_blank" rel="noopener">GitHub</a></span
+      >
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>

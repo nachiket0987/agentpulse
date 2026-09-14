@@ -1,0 +1,22 @@
+{
+  "name": "agenttrace-nodejs-express-example",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Express.js server with AgentTrace: traced routes, middleware, error tracking, and AI call observability",
+  "scripts": {
+    "start": "node dist/app.js",
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch & node --watch dist/app.js",
+    "clean": "rm -rf dist agenttrace-express.db agenttrace-express.db-*"
+  },
+  "dependencies": {
+    "@agenttrace-io/sdk": "file:../../packages/sdk",
+    "express": "^4.21.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.4.0"
+  }
+}

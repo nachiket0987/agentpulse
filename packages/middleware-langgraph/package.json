@@ -1,0 +1,26 @@
+{
+  "name": "@agenttrace-io/middleware-langgraph",
+  "version": "0.4.24",
+  "description": "LangGraph middleware for AgentTrace - automatic tracing of node executions",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@agenttrace-io/sdk": "workspace:*"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
+    "test": "vitest run --config ../../vitest.config.ts packages/middleware-langgraph/tests/test.ts"
+  }
+}

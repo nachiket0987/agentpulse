@@ -1,0 +1,2 @@
+agenttrace-io
+# For real usage also: langchain langchain-openai (or your provider)

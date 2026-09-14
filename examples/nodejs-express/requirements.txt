@@ -1,0 +1,11 @@
+# AgentTrace Node.js Express Example - Dependencies
+# This file is for reference. Install with: npm install
+#
+# Runtime:
+#   @agenttrace-io/sdk  - AgentTrace TypeScript SDK (workspace link)
+#   express             - Fast, unopinionated web framework
+#
+# Dev:
+#   @types/express      - TypeScript types for Express
+#   @types/node         - TypeScript types for Node.js
+#   typescript          - TypeScript compiler

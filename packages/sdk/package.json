@@ -1,0 +1,53 @@
+{
+  "name": "@agentpulse-io/sdk",
+  "version": "0.4.24",
+  "description": "Drop-in tracing SDK for AI agents — track tokens, cost, latency, and tool calls",
+  "author": "Nachiket Gadilohar <nachiketlohar0306@gmail.com>",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./benchmark": {
+      "types": "./dist/benchmark.d.ts",
+      "import": "./dist/benchmark.js"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nachiket0987/agentpulse.git",
+    "directory": "packages/sdk"
+  },
+  "homepage": "https://github.com/nachiket0987/agentpulse#readme",
+  "keywords": [
+    "ai",
+    "agents",
+    "observability",
+    "tracing",
+    "llm",
+    "cost-tracking",
+    "token-tracking"
+  ],
+  "peerDependencies": {
+    "better-sqlite3": "^12.10.0"
+  },
+  "peerDependenciesMeta": {
+    "better-sqlite3": {
+      "optional": false
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
+    "test": "vitest run --config ../../vitest.config.ts packages/sdk"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "name": "@agentpulse-io/cli",
+  "version": "0.4.24",
+  "description": "CLI for AgentPulse — trace, dashboard, stats, costs, alerts, wrap any agent",
+  "author": "Nachiket Gadilohar <nachiketlohar0306@gmail.com>",
+  "type": "module",
+  "bin": {
+    "agentpulse-io": "./dist/index.js",
+    "agentpulse": "./dist/index.js"
+  },
+  "dependencies": {
+    "@agentpulse-io/dashboard": "workspace:*",
+    "@agentpulse-io/sdk": "workspace:*"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nachiket0987/agentpulse.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://github.com/nachiket0987/agentpulse#readme",
+  "keywords": [
+    "ai",
+    "agents",
+    "observability",
+    "cli",
+    "tracing",
+    "llm",
+    "cost-tracking"
+  ],
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
+    "test": "vitest run --config ../../vitest.config.ts packages/cli"
+  }
+}

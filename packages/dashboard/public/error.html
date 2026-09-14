@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Error • AgentTrace</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <style>
+      .error-wrap {
+        min-height: 70vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+      .error-code {
+        font-size: 72px;
+        font-weight: 700;
+        letter-spacing: -3px;
+        line-height: 1;
+        color: #ef4444;
+      }
+      .error-msg {
+        font-size: 17px;
+        color: var(--text-muted);
+        margin: 12px 0 24px;
+        max-width: 420px;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <svg
+            class="brand-logo"
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="9" stroke="#3b82f6" stroke-width="2" />
+            <path
+              d="M8 12l3 3 5-5"
+              stroke="#3b82f6"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <h1 style="margin: 0; font-size: 18px">AgentTrace</h1>
+        </div>
+        <a href="/" class="btn btn-secondary">← Back to dashboard</a>
+      </div>
+    </header>
+    <div class="error-wrap container">
+      <div>
+        <div class="error-code">Error</div>
+        <div class="error-msg" id="msg">
+          Something went wrong while loading data. This is usually a transient server or database
+          issue.
+        </div>
+        <div style="display: flex; gap: 10px; justify-content: center">
+          <button onclick="location.reload()" class="btn btn-primary">Retry</button>
+          <a href="/" class="btn btn-secondary">Go home</a>
+        </div>
+        <div style="margin-top: 28px; font-size: 12px; color: #555">
+          If the problem persists, check that the AgentTrace server process is running and the
+          database file is readable.
+        </div>
+      </div>
+    </div>
+    <script>
+      // Show query param message if present
+      var p = new URLSearchParams(location.search).get('msg');
+      if (p) document.getElementById('msg').textContent = decodeURIComponent(p);
+    </script>
+  </body>
+</html>

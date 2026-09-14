@@ -1,0 +1,48 @@
+{
+  "name": "@agentpulse-io/dashboard",
+  "version": "0.4.24",
+  "description": "Local web dashboard for AgentPulse — view runs, traces, costs, and stats",
+  "author": "Nachiket Gadilohar <nachiketlohar0306@gmail.com>",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nachiket0987/agentpulse.git",
+    "directory": "packages/dashboard"
+  },
+  "homepage": "https://github.com/nachiket0987/agentpulse#readme",
+  "keywords": [
+    "ai",
+    "agents",
+    "observability",
+    "dashboard",
+    "tracing",
+    "llm"
+  ],
+  "files": [
+    "dist",
+    "public"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
+    "test": "vitest run --config ../../vitest.config.ts packages/dashboard",
+    "start": "node dist/index.js",
+    "dashboard": "node dist/index.js"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "@agentpulse-io/sdk": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "jsdom": "^29.1.1"
+  }
+}

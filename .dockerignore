@@ -1,0 +1,56 @@
+# Dependencies (huge, rebuild inside)
+node_modules
+**/node_modules
+
+# Build outputs (we rebuild)
+dist
+**/dist
+**/*.tsbuildinfo
+
+# Python caches
+**/__pycache__
+**/*.pyc
+**/*.pyo
+
+# Local data / DB (never bake DB into image)
+*.db
+**/*.db
+agenttrace.db
+
+# Logs
+*.log
+**/*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+**/.DS_Store
+Thumbs.db
+
+# VCS
+.git
+.gitignore
+.gitattributes
+
+# Docker files themselves
+Dockerfile
+Dockerfile.*
+docker-compose.yml
+docker-compose.*.yml
+.dockerignore
+
+# Documentation, examples, tests (not required for runtime image)
+docs/
+docs-site/
+examples/
+tests/
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Misc
+.env
+.env.*

@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AgentTrace • Dashboard</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+
+    <!-- Tailwind for a modern, mainstream look (consistent with the new landing page) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css" />
+
+    <style>
+      /* Light overrides + modern polish on top of existing system */
+      body {
+        font-family:
+          'Inter',
+          system_ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          Roboto,
+          sans-serif;
+      }
+      .font-display {
+        font-family: 'Space Grotesk', 'Inter', system_ui, sans-serif;
+        font-feature-settings: 'ss01';
+      }
+
+      /* Make the existing dense UI feel more premium and spacious */
+      .container {
+        max-width: 1280px;
+      }
+
+      .stat-card {
+        transition:
+          transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+          box-shadow 0.2s;
+      }
+      .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow:
+          0 10px 15px -3px rgb(0 0 0 / 0.1),
+          0 4px 6px -4px rgb(0 0 0 / 0.1);
+      }
+
+      .run-item,
+      .trace-item {
+        transition: all 0.1s ease;
+      }
+
+      .panel {
+        transition: box-shadow 0.2s;
+      }
+
+      .panel:hover {
+        box-shadow:
+          0 4px 6px -1px rgb(0 0 0 / 0.1),
+          0 2px 4px -2px rgb(0 0 0 / 0.1);
+      }
+
+      /* Better trace tree visual hint */
+      .trace-item {
+        position: relative;
+      }
+
+      /* Modern topbar */
+      .topbar {
+        background: rgba(17, 18, 23, 0.95);
+        backdrop-filter: blur(12px);
+      }
+
+      .brand h1 {
+        letter-spacing: -0.5px;
+      }
+
+      /* Make filters and toolbar feel like the landing page */
+      .filter-btn.active,
+      .date-btn.active {
+        background-color: #6366f1;
+        color: white;
+        border-color: #6366f1;
+      }
+    </style>
+  </head>
+  <body class="bg-[#0a0b0f] text-[#e6e8f0]">
+    <!-- Modern Top Nav (matches new landing page aesthetic) -->
+    <header class="topbar border-b border-[#252a34] sticky top-0 z-50">
+      <div class="max-w-[1280px] mx-auto px-6">
+        <div class="flex h-14 items-center justify-between">
+          <div class="flex items-center gap-x-3">
+            <div class="flex items-center gap-x-2.5">
+              <div
+                class="w-7 h-7 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center"
+              >
+                <span class="text-white text-[15px] font-semibold tracking-tighter">A</span>
+              </div>
+              <div class="flex items-baseline gap-x-1.5">
+                <span class="font-semibold text-xl tracking-tighter">AgentTrace</span>
+                <span class="text-[10px] font-medium text-[#8a90a0] tracking-[1px] uppercase"
+                  >Dashboard</span
+                >
+              </div>
+            </div>
+            <span
+              id="version-badge"
+              class="text-[10px] px-2 py-px rounded-full border border-[#252a34] text-[#8a90a0]"
+              >v0.4.3</span
+            >
+          </div>
+
+          <div class="flex items-center gap-x-2">
+            <button
+              id="refresh-btn"
+              class="inline-flex items-center gap-x-2 rounded-xl border border-[#252a34] bg-[#111217] px-3.5 py-1.5 text-sm font-medium hover:bg-[#161a21] transition-colors"
+              title="Refresh data (R)"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+              >
+                <path
+                  d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.66 0 3-1.34 3-3"
+                />
+              </svg>
+              <span>Refresh</span>
+            </button>
+
+            <a
+              href="/usage"
+              class="inline-flex items-center rounded-xl border border-[#252a34] bg-[#111217] px-3.5 py-1.5 text-sm font-medium hover:bg-[#161a21] transition-colors"
+            >
+              Usage
+            </a>
+
+            <div class="flex rounded-xl border border-[#252a34] overflow-hidden">
+              <button
+                id="export-json-btn"
+                class="px-3 py-1.5 text-sm hover:bg-[#161a21] border-r border-[#252a34]"
+              >
+                JSON
+              </button>
+              <button id="export-csv-btn" class="px-3 py-1.5 text-sm hover:bg-[#161a21]">
+                CSV
+              </button>
+            </div>
+
+            <a
+              href="https://github.com/Klepsiphron/agenttrace"
+              target="_blank"
+              class="inline-flex items-center gap-x-2 rounded-xl border border-[#252a34] bg-[#111217] px-3.5 py-1.5 text-sm font-medium hover:bg-[#161a21] transition-colors"
+            >
+              GitHub
+            </a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-[1280px] mx-auto px-6 py-6">
+      <!-- Stats -->
+      <section class="mb-6" aria-label="Summary statistics">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="stats">
+          <!-- JS populated stat cards (kept same structure for app.js) -->
+          <div class="stat-card rounded-3xl border border-[#252a34] bg-[#111217] p-5">
+            <div class="skeleton skeleton-stat"></div>
+            <div class="skeleton skeleton-line" style="width: 60%"></div>
+          </div>
+          <div class="stat-card rounded-3xl border border-[#252a34] bg-[#111217] p-5">
+            <div class="skeleton skeleton-stat"></div>
+            <div class="skeleton skeleton-line" style="width: 60%"></div>
+          </div>
+          <div class="stat-card rounded-3xl border border-[#252a34] bg-[#111217] p-5">
+            <div class="skeleton skeleton-stat"></div>
+            <div class="skeleton skeleton-line" style="width: 60%"></div>
+          </div>
+          <div class="stat-card rounded-3xl border border-[#252a34] bg-[#111217] p-5">
+            <div class="skeleton skeleton-stat"></div>
+            <div class="skeleton skeleton-line" style="width: 60%"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Burn rate + Top Agents -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+        <div
+          class="burn-card rounded-3xl border border-[#252a34] bg-[#111217] p-5"
+          aria-label="Token burn rate"
+        >
+          <div class="burn-label text-xs uppercase tracking-widest text-[#8a90a0] mb-1">
+            Token Burn Rate (last hour)
+          </div>
+          <div class="burn-value text-3xl font-semibold tabular-nums" id="burn-tokens">— t/min</div>
+          <div class="burn-sub text-sm text-[#8a90a0]" id="burn-cost">— cost/hr</div>
+        </div>
+
+        <div
+          class="top-agents rounded-3xl border border-[#252a34] bg-[#111217] p-5"
+          aria-label="Top agents by cost"
+        >
+          <div class="text-xs uppercase tracking-widest text-[#8a90a0] mb-3">
+            Top Agents by Cost
+          </div>
+          <div id="top-agents-list" class="top-agents-list text-sm"></div>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="flex flex-wrap items-center gap-3 mb-4" aria-label="Filter and search runs">
+        <input
+          type="text"
+          id="search-input"
+          class="search-input w-full sm:w-72 rounded-2xl border border-[#252a34] bg-[#111217] px-4 py-2 text-sm placeholder:text-[#8a90a0] focus:border-[#6366f1] focus:outline-none"
+          placeholder="Search runs by name…"
+        />
+
+        <div
+          class="filter-group flex rounded-2xl border border-[#252a34] bg-[#111217] overflow-hidden text-sm"
+          id="status-filters"
+          role="group"
+        >
+          <button class="filter-btn active px-4 py-1.5" data-status="all">All</button>
+          <button class="filter-btn px-4 py-1.5" data-status="success">Success</button>
+          <button class="filter-btn px-4 py-1.5" data-status="failure">Failure</button>
+          <button class="filter-btn px-4 py-1.5" data-status="running">Running</button>
+        </div>
+
+        <div
+          class="date-range flex rounded-2xl border border-[#252a34] bg-[#111217] overflow-hidden text-sm"
+          id="date-range"
+          role="group"
+        >
+          <button class="date-btn active px-3.5 py-1.5" data-range="all">All</button>
+          <button class="date-btn px-3.5 py-1.5" data-range="1h">1h</button>
+          <button class="date-btn px-3.5 py-1.5" data-range="today">Today</button>
+          <button class="date-btn px-3.5 py-1.5" data-range="week">Week</button>
+        </div>
+
+        <div class="flex-1"></div>
+
+        <div class="text-xs text-[#8a90a0]" id="auto-refresh-hint">
+          Auto-refreshes every 5s • <span id="runs-total">0</span> total
+        </div>
+      </div>
+
+      <!-- Runs List -->
+      <section
+        class="panel rounded-3xl border border-[#252a34] bg-[#111217] overflow-hidden mb-4"
+        aria-labelledby="runs-heading"
+      >
+        <div
+          class="panel-header flex items-center justify-between px-5 py-3 border-b border-[#252a34] bg-[#161a21]"
+        >
+          <h2 id="runs-heading" class="font-semibold text-base tracking-tight">
+            Recent Agent Runs
+          </h2>
+          <span
+            id="runs-count"
+            class="count-badge text-xs px-3 py-0.5 rounded-full border border-[#252a34] bg-[#0a0b0f] text-[#8a90a0]"
+            >0 runs</span
+          >
+        </div>
+        <div
+          id="runs-list"
+          class="runs-list divide-y divide-[#252a34]"
+          aria-live="polite"
+          role="list"
+        >
+          <!-- Populated by JS -->
+        </div>
+      </section>
+
+      <!-- Traces -->
+      <section
+        id="traces-section"
+        class="panel rounded-3xl border border-[#252a34] bg-[#111217] overflow-hidden mb-4"
+        style="display: none"
+        aria-labelledby="traces-heading"
+      >
+        <div
+          class="panel-header flex items-center justify-between px-5 py-3 border-b border-[#252a34] bg-[#161a21]"
+        >
+          <h2 id="traces-heading" class="font-semibold text-base tracking-tight">
+            Traces for
+            <span id="selected-run-name" class="run-name font-mono text-[#a5b4fc]"></span>
+          </h2>
+          <span
+            id="traces-count"
+            class="count-badge text-xs px-3 py-0.5 rounded-full border border-[#252a34] bg-[#0a0b0f] text-[#8a90a0]"
+            >0 traces</span
+          >
+        </div>
+        <div id="traces-list" class="traces-list divide-y divide-[#252a34]" role="list"></div>
+      </section>
+
+      <!-- Trace Details -->
+      <section
+        id="details-section"
+        class="panel rounded-3xl border border-[#252a34] bg-[#111217] overflow-hidden"
+        style="display: none"
+        aria-labelledby="details-heading"
+      >
+        <div
+          class="panel-header flex items-center justify-between px-5 py-3 border-b border-[#252a34] bg-[#161a21]"
+        >
+          <h2 id="details-heading" class="font-semibold text-base tracking-tight">Trace Details</h2>
+          <button
+            id="close-details-btn"
+            class="text-sm text-[#8a90a0] hover:text-white px-3 py-1 rounded-xl border border-[#252a34] hover:bg-[#161a21]"
+          >
+            Close
+          </button>
+        </div>
+        <div id="trace-details" class="trace-details p-5"></div>
+      </section>
+    </main>
+
+    <footer class="max-w-[1280px] mx-auto px-6 pb-8 text-center text-xs text-[#8a90a0]">
+      Data lives entirely on your machine in SQLite •
+      <a href="https://github.com/Klepsiphron/agenttrace" target="_blank" class="hover:text-white"
+        >GitHub</a
+      >
+    </footer>
+
+    <div id="toast-container" class="fixed bottom-5 right-5 z-[200] flex flex-col gap-2"></div>
+
+    <script src="app.js"></script>
+
+    <script>
+      // Tailwind config to match the new landing page aesthetic
+      function initTailwind() {
+        if (window.tailwind) {
+          window.tailwind.config = {
+            theme: {
+              extend: {
+                fontFamily: {
+                  display: ['Space Grotesk', 'Inter', 'system-ui', 'sans-serif'],
+                },
+              },
+            },
+          };
+        }
+      }
+      initTailwind();
+    </script>
+  </body>
+</html>

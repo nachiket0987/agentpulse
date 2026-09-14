@@ -1,0 +1,2 @@
+agenttrace-io
+# For full middleware: pip install agenttrace-io-middleware-crewai crewai

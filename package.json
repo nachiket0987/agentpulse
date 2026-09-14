@@ -1,0 +1,44 @@
+{
+  "name": "agentpulse",
+  "version": "0.4.24",
+  "private": true,
+  "description": "Open-source AI agent observability — trace tokens, tools, latency, and cost locally",
+  "author": "Nachiket Gadilohar <nachiketlohar0306@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nachiket0987/agentpulse.git"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "prebuild": "node scripts/sync-version.mjs",
+    "build": "pnpm -r run build",
+    "pretest": "node scripts/sync-version.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint \"packages/**/*.ts\" \"vitest.config.ts\"",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "dev": "pnpm -r --parallel run dev",
+    "prepare": "husky install"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^25.9.2",
+    "@typescript-eslint/eslint-plugin": "^8.60.1",
+    "@typescript-eslint/parser": "^8.60.1",
+    "better-sqlite3": "^12.10.0",
+    "commander": "^15.0.0",
+    "eslint": "^10.4.1",
+    "eslint-config-prettier": "^10.1.5",
+    "globals": "^17.6.0",
+    "husky": "^8.0.0",
+    "jsdom": "^29.1.1",
+    "prettier": "^3.5.3",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.60.1",
+    "vitest": "^4.1.8"
+  }
+}

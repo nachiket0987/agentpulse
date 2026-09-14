@@ -1,0 +1,19 @@
+{
+  "name": "agenttrace-node-basic-example",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Basic TypeScript usage of AgentTrace for an AI agent tracking its own work and costs",
+  "scripts": {
+    "start": "node --loader tsx/esm index.ts",
+    "start:dist": "node dist/index.js",
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@agenttrace-io/sdk": "file:../../../packages/sdk"
+  },
+  "devDependencies": {
+    "tsx": "^4.7.0",
+    "typescript": "^5.4.0"
+  }
+}

@@ -1,0 +1,33 @@
+version: 2
+updates:
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+    open-pull-requests-limit: 5
+    labels:
+      - 'dependencies'
+    groups:
+      eslint-related:
+        patterns:
+          - 'eslint'
+          - '@eslint/*'
+          - 'globals'
+          - 'typescript-eslint'
+          - '@typescript-eslint/*'
+          - 'eslint-config-prettier'
+  - package-ecosystem: 'pip'
+    directory: '/packages/sdk-python'
+    schedule:
+      interval: 'weekly'
+    open-pull-requests-limit: 5
+    labels:
+      - 'dependencies'
+      - 'python'
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+    labels:
+      - 'dependencies'
+      - 'github-actions'
